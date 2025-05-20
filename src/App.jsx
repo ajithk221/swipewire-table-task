@@ -6,6 +6,7 @@ const App = () => {
   const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch('https://api.github.com/repositories/19438/issues')
@@ -28,7 +29,9 @@ const App = () => {
   };
 
   const handleDelete = (id) => {
-    setUsers(users.filter(user => user.id !== id));
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      setUsers(users.filter(user => user.id !== id));
+    }
   };
 
   const handleModalChange = (e) => {
@@ -42,9 +45,19 @@ const App = () => {
     setEditUser(null);
   };
 
+ 
+  
+
   return (
     <div className="app">
       <h1> User Issues</h1>
+      <input
+      type="text"
+      placeholder="Search by login"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      style={{ padding: '8px', width: '250px', marginBottom: '20px' }}
+    />
       <table>
         <thead>
           <tr>
@@ -55,18 +68,33 @@ const App = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map(user => (
-            <tr key={user.id}>
-              <td><img src={user.avatar_url} alt="avatar" width="40" /></td>
-              <td>{user.login}</td>
-              <td>{user.type}</td>
-              <td>
-                <button onClick={() => handleEditClick(user)}>Edit</button>
-                <button onClick={() => handleDelete(user.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+  {users.filter(user =>
+    user.login.toLowerCase().includes(searchTerm.toLowerCase())
+  ).length === 0 ? (
+    <tr>
+      <td colSpan="4" style={{ textAlign: 'center', padding: '10px' }}>
+        No results found
+      </td>
+    </tr>
+  ) : (
+    users
+      .filter(user =>
+        user.login.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .map(user => (
+        <tr key={user.id}>
+          <td><img src={user.avatar_url} alt="avatar" width="40" /></td>
+          <td>{user.login}</td>
+          <td>{user.type}</td>
+          <td>
+            <button onClick={() => handleEditClick(user)}>Edit</button>
+            <button onClick={() => handleDelete(user.id)}>Delete</button>
+          </td>
+        </tr>
+      ))
+  )}
+</tbody>
+
       </table>
 
       {modalVisible && (
